@@ -1,0 +1,72 @@
+INSTRUCTIONS
+
+But: Vous devez extraire un ensemble de mesures de code Java. 
+Nous vous fournissons un squelette de code pour exécuter le code 
+dans un environnement eclipse.
+
+Ce code est testé sur eclipse-3.8.1 et eclipse-4.3.1 avec PDE 
+installé (par défaut dans eclipse 4.3 disponible sur les terminaux 
+au DIRO) avec jdk1.7.
+
+Vous devez étendre le code fourni pour générer un fichier de mesures à 
+partir d'un workspace Java dans eclipse. Vous devez extraire un ensemble 
+de mesure sur toutes les classes présentes dans un workspace.
+
+SORTIE
+La sortie est un ensemble de mesures séparés par un point-virgule.
+
+La première rangée doit être l'entête:
+Classe;LOC;NbreInterfaces;NbreAttrImpl;PctAttrPub;PctAttrHer;NbreMethImpl;PctMethPub;PctMethHer;DIT;NOC;WMC;LCOM;RFC;CBO;fanOut;fanIn
+
+Les rangées suivantes doivent contenir les valeurs des mesures (en ordre):
+
+Classe : Nom qualifié de la classe (incluant le nom de package)
+LOC : Nombre de lignes
+NbreInterfaces : Interfaces de la classes (toutes, transitivement héritées)
+NbreAttrImpl : Nombre d'attributs implantés dans la classe
+PctAttrPub : Pourcentage des attributs qui sont publiques
+PctAttrHer : Pourcentage des attributs hérités
+NbreMethImpl : Nombre de méthodes implantées
+PctMethPub : Pourcentage des méthodes qui sont publiques
+PctMethHer : Pourcentage des méthodes qui sont héritées
+DIT : Profondeur dans l'arbre d'héritage (voir les notes)
+NOC : Nombre de fils
+WMC : Somme des complexités des méthodes. Complexité est la complexité cyclomatique.
+LCOM : Manque de cohésion (voir les notes)
+RFC: Le nombre de méthodes pouvant être appelés (niveau 1) - Voir notes
+CBO : Couplage entre les objets (voir les notes)
+fanOut : Nombre de classes sont utilisées par la classe
+fanIn :Nombre de classes qui utilisent la classe
+
+EXECUTION
+
+Comment exécuter le code:
+-> Run configurations
+-> Sous Main - Workspace Data -> Location doit pointer vers un workspace
+contenant des projets à analyser
+-> Run an application - ca.umontreal.ift3913.jdt.mesures
+
+== 20140127 ==
+Si vous voulez executer ce code sur une machine windows/macosx, vous 
+devez ajouter des plug-ins natifs.
+-> Sous Run Configurations, onglet Plug-ins, sur la droite, demandez d'ajouter 
+les "Required Plug-ins". Ceci devrait ajouter les dépendences natives swt.
+
+Il est également possible d'exporter le projet comme un application en ouvrant 
+le fichier product et en demandant un export.
+
+L'exécution de ce qui est exporté est:
+./eclipse -data <workspace_test>
+
+RAPPORT
+Vous devez accompagner le code avec un rapport qui indique les détails 
+d'implantations lorsqu'il y a des ambiguités dans la définition des 
+mesures.
+
+Remise:
+Pour remettre le code, veuillez utiliser la commande remise TP1 en fournissant
+un zip/tgz contenant tous les fichiers nécessaire pour extraire les mesures
+
+Notes:
+20140127 Le code a été testé sur une station linux du 1340.
+20140127 Vous devez faire ce travail en équipe de deux.
