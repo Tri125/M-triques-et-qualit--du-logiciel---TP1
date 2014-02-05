@@ -29,19 +29,28 @@ final class GenerateurMesures extends ASTVisitor {
 	}
 
 	@Override
+	
 	public boolean visit(TypeDeclaration type) {
 		System.out.println("Traitement Classe/Interface: "
 				+ type.getName().getFullyQualifiedName());
+		
+		//System.out.println("Nombre de Ligne: " + (type.getl);
 		// Possible de trouver les supertypes à partir de la déclaration du type
 
 		// Si l'arbre d'héritage est connu
-		// ITypeBinding typeBinding = type.resolveBinding();
-		// typeBinding.getSuperclass();
-		// typeBinding.getInterfaces();
-
+		//ITypeBinding typeBinding = type.resolveBinding();
+		
+		//typeBinding.getSuperclass();
+		//typeBinding.getInterfaces();
 		// Pour la taille, il est possible d'utiliser de trouver la ligne à
 		// partir de la méthode:
-		// compilationUnit.getLineNumber(position)
+		// compilationUnit.getLineNumber(position);
+		CompilationUnit cmpU = (CompilationUnit)(type.getRoot());
+		int StartlineNumber = cmpU.getLineNumber(type.getStartPosition()) -1;
+		int nodeLength = type.getLength();
+		System.out.println("Package: " + cmpU.getPackage());
+		int endLineNumber = cmpU.getLineNumber(type.getStartPosition() + nodeLength) - 1;
+		System.out.println("Nombre de Ligne : " + endLineNumber);
 		return super.visit(type);
 	}
 
