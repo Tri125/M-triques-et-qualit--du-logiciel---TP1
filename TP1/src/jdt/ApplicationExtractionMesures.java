@@ -38,7 +38,11 @@ public class ApplicationExtractionMesures implements IApplication {
 	}
 
 	private void processProject(IProject project) throws JavaModelException {
+		if (!project.exists()) {
+			return;
+		}
 		IJavaProject javaProject = javaModel.getJavaProject(project.getName());
+		
 		IPackageFragmentRoot[] roots = javaProject.getAllPackageFragmentRoots();
 		for (IPackageFragmentRoot root : roots) {
 			root.open(new NullProgressMonitor());
@@ -52,11 +56,11 @@ public class ApplicationExtractionMesures implements IApplication {
 					IPackageFragment fragment = (IPackageFragment) javaElems;
 					ICompilationUnit[] compilationUnits = fragment
 							.getCompilationUnits();
-					ASTParser parser = ASTParser.newParser(AST.JLS4);
-					parser.setProject(javaProject);
-					parser.setResolveBindings(true);
-					parser.setBindingsRecovery(true);
 					for (ICompilationUnit compUnit : compilationUnits) {
+						ASTParser parser = ASTParser.newParser(AST.JLS4);
+						parser.setProject(javaProject);
+						parser.setResolveBindings(true);
+						parser.setBindingsRecovery(true);
 						parser.setSource(compUnit);
 						ASTNode rootNode = parser
 								.createAST(new NullProgressMonitor());
