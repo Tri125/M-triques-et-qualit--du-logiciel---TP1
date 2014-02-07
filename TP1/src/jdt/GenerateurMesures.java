@@ -1,9 +1,16 @@
 package jdt;
 
+import java.text.DecimalFormat;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.eclipse.jdt.core.Flags;
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
+import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -38,20 +45,150 @@ final class GenerateurMesures extends ASTVisitor {
 		// Possible de trouver les supertypes Ã  partir de la dÃ©claration du type
 
 		// Si l'arbre d'hÃ©ritage est connu
-		//ITypeBinding typeBinding = type.resolveBinding();
-		
-		//typeBinding.getSuperclass();
-		//typeBinding.getInterfaces();
+        ITypeBinding typeBind = type.resolveBinding();      
+
 		// Pour la taille, il est possible d'utiliser de trouver la ligne Ã 
 		// partir de la mÃ©thode:
 		// compilationUnit.getLineNumber(position);
 		CompilationUnit cmpU = (CompilationUnit)(type.getRoot());
-		int StartlineNumber = cmpU.getLineNumber(type.getStartPosition()) -1;
-		int nodeLength = type.getLength();
-		System.out.println("Package: " + cmpU.getPackage());
-		int endLineNumber = cmpU.getLineNumber(type.getStartPosition() + nodeLength) - 1;
-		System.out.println("Nombre de Ligne : " + endLineNumber);
+		
+	
+		if (!type.isInterface()) //Donc une classe
+		{
+			Set<String> setInterfaces = new HashSet<String>();
+			extractLOC(type, cmpU);
+			extractPackageName(cmpU);
+			NbrImplementedAttribute(typeBind.getDeclaredFields());
+			InterFaceNumber(setInterfaces, typeBind, cmpU.getAST());
+			PublicAttrPourcent(typeBind.getDeclaredFields());
+			InheritedAttrPourcent(typeBind.getDeclaredFields().length, 0, 0, typeBind, cmpU.getAST());
+		}
 		return super.visit(type);
+	}
+	
+	
+	public void InheritedAttrPourcent(final int nbrAttrSource, int nbrAttrInherit, int profondeur, ITypeBinding typeBind, AST ast)
+	{
+        ITypeBinding superTypeBind = typeBind.getSuperclass();
+        
+        if (profondeur == 0) //On skip à la profondeur 0 car nous cherchons les attributs hérités, pas ceux que la classe offre
+        {
+        	InheritedAttrPourcent(nbrAttrSource, nbrAttrInherit, ++profondeur, superTypeBind, ast);
+        }
+        else
+        {
+        	if (!typeBind.isEqualTo(ast.resolveWellKnownType("java.lang.Object"))) //N'est pas la première classe, donc nous pouvons commencer à vérifier les attributs protected (qui sont hérités)
+        	{
+        		for (IVariableBinding t : typeBind.getDeclaredFields() )
+            	{
+        			int modifier = t.getModifiers();
+            		if (Flags.isProtected(modifier))
+            		{
+            			System.out.println("PROTECTED FIELD : " + t.getName());
+            			nbrAttrInherit++;
+            		}
+            	}
+            	InheritedAttrPourcent(nbrAttrSource, nbrAttrInherit, ++profondeur, superTypeBind, ast);
+            }
+        	else
+        	{
+    			System.out.println(nbrAttrSource );
+            	float pourcent = 0.0f;
+                DecimalFormat df = new DecimalFormat();
+                df.setMaximumFractionDigits(2);
+                    
+                if (nbrAttrSource != 0)
+                {
+                  pourcent = ((float)nbrAttrInherit /(nbrAttrSource + nbrAttrInherit) ) * 100;
+                }
+                System.out.println("Pourcentage Attribut Heriter : " + df.format(pourcent) + "%");
+                System.out.println("Nombres d'attributs Heriter: " + nbrAttrInherit);
+        	}
+        	
+        }
+    
+	}
+	
+	
+	
+	public void InterFaceNumber(Set<String> setInterfaces, ITypeBinding typeBind, AST ast)
+	{
+        ITypeBinding[] interfaceBinds = typeBind.getInterfaces(); 
+        for (ITypeBinding t : interfaceBinds)
+        {
+        	setInterfaces.add(t.getQualifiedName());
+        }
+        
+        ITypeBinding superTypeBind = typeBind.getSuperclass();
+        
+        if (!typeBind.isEqualTo(ast.resolveWellKnownType("java.lang.Object")))
+        {
+        	InterFaceNumber(setInterfaces, superTypeBind, ast);
+        }
+        else
+        {
+            for (String interf : setInterfaces)
+            {
+                System.out.println("INTERFACE: " + interf);
+            }
+        }
+	}
+	
+	public void NbrImplementedAttribute(IVariableBinding[] varBinding)
+	{
+        for (IVariableBinding t : varBinding )
+        {
+        	int modifier = t.getModifiers();
+        	if(Flags.isFinal(modifier)) //Les constantes ne sont pas considérés comme un attribut FINAL a un flag de valeur "16"
+        	{
+        		System.out.println("Constante declarer : " + t.getName());
+        	}
+        	else
+            	System.out.println("Attribut declarer : " + t.getName());
+        } 
+	}
+	
+	public void PublicAttrPourcent(IVariableBinding[] varBinding)
+	{
+		int nbrPublic = 0;
+		//int nbrPrivate = 0;
+		float pourcent = 0.0f;
+		
+		
+        for (IVariableBinding t : varBinding )
+        {
+        	int modifier = t.getModifiers();
+        	if (Flags.isPublic(modifier))
+        	{
+        		nbrPublic++;
+        	}
+        } 
+        if (varBinding.length != 0)
+        {
+        	pourcent = ((float)nbrPublic /varBinding.length) * 100;
+        }
+        DecimalFormat df = new DecimalFormat();
+        df.setMaximumFractionDigits(2);
+    	System.out.println("Pourcentage Attribut Publique : " + df.format(pourcent) + "%");
+	}
+	
+	public void extractLOC(TypeDeclaration type, CompilationUnit cmpU)
+	{
+		int nodeLength = type.getLength();
+		int endLineNumber = cmpU.getLineNumber(type.getStartPosition() + nodeLength);
+		System.out.println("Nombre de Ligne : " + endLineNumber); //LOC
+	}
+	
+	public void extractPackageName(CompilationUnit cmpU)
+	{
+		String nomPackage;
+		if (cmpU.getPackage() == null)
+		{
+			nomPackage = "Default";
+		}
+		else
+			nomPackage = cmpU.getPackage().toString();
+		System.out.println("Package: " + nomPackage);
 	}
 
 	@Override
