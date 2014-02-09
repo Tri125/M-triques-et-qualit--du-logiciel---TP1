@@ -8,19 +8,30 @@ import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.CompilationUnit;
+import org.eclipse.jdt.core.dom.ForStatement;
 import org.eclipse.jdt.core.dom.IMethodBinding;
 import org.eclipse.jdt.core.dom.ITypeBinding;
 import org.eclipse.jdt.core.dom.IVariableBinding;
+import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.WhileStatement;
 
 /**
  * Visiteur de l'arbre de synthaxe Java fourni par eclipse 3.8 et 4.3
  * 
  * @author vauchers@iro.umontreal.ca
  */
+
+
+
 final class GenerateurMesures extends ASTVisitor {
+	
+	private int wmc_ComplexiteCyclomatic;
+	
+	
 	@Override
 	public void endVisit(MethodInvocation node) {
 		IMethodBinding methodBinding = node.resolveMethodBinding();
@@ -62,6 +73,7 @@ final class GenerateurMesures extends ASTVisitor {
 			InterFaceNumber(setInterfaces, typeBind, cmpU.getAST());
 			PublicAttrPourcent(typeBind.getDeclaredFields());
 			InheritedAttrPourcent(typeBind.getDeclaredFields().length, 0, 0, typeBind, cmpU.getAST());
+			DIT(typeBind,cmpU.getAST(),0);
 		}
 		return super.visit(type);
 	}
@@ -92,7 +104,7 @@ final class GenerateurMesures extends ASTVisitor {
             }
         	else
         	{
-    			System.out.println(nbrAttrSource );
+    			//System.out.println(nbrAttrSource );
             	float pourcent = 0.0f;
                 DecimalFormat df = new DecimalFormat();
                 df.setMaximumFractionDigits(2);
@@ -109,7 +121,20 @@ final class GenerateurMesures extends ASTVisitor {
     
 	}
 	
-	
+	public void DIT(ITypeBinding typeBind, AST ast, int depth)
+	{  
+        ITypeBinding superTypeBind = typeBind.getSuperclass();
+        
+        if (!superTypeBind.isEqualTo(ast.resolveWellKnownType("java.lang.Object")))
+        {
+        	DIT(superTypeBind, ast, ++depth);
+        }
+        else
+        {
+        	System.out.println("Profondeur dans l'arbre d'heritage: " + depth);
+        }
+		
+	}
 	
 	public void InterFaceNumber(Set<String> setInterfaces, ITypeBinding typeBind, AST ast)
 	{
@@ -195,7 +220,37 @@ final class GenerateurMesures extends ASTVisitor {
 	public boolean visit(MethodDeclaration node) {
 		System.out.println("Traitement Methode: "
 				+ node.getName().getFullyQualifiedName());
+		
+		wmc_ComplexiteCyclomatic = 1;
 		return super.visit(node);
+	}
+	
+	@Override
+	public void endVisit(MethodDeclaration node) {
+		System.out.println("WMC Complexité Cyclomatique de la methode " + node.getName().getFullyQualifiedName() + "\t: "
+		+ wmc_ComplexiteCyclomatic);
+	}
+	
+	
+	
+	public boolean visit (IfStatement node) {
+		wmc_ComplexiteCyclomatic++;
+		return true;
+	}
+	
+	public boolean visit (ForStatement node) {
+		wmc_ComplexiteCyclomatic++;
+		return true;
+	}
+	
+	public boolean visit (WhileStatement node) {
+		wmc_ComplexiteCyclomatic++;
+		return true;
+	}
+	
+	public boolean visit (SwitchCase node) {
+		wmc_ComplexiteCyclomatic++;
+		return true;
 	}
 
 	@Override
