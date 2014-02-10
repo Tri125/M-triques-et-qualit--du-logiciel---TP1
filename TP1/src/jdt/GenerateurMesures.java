@@ -331,10 +331,10 @@ final class GenerateurMesures extends ASTVisitor {
         for (IVariableBinding t : varBinding )
         {
         	int modifier = t.getModifiers();
-        	if (Flags.isPublic(modifier)) //Si l'attribut est publique
+        	if (Flags.isPublic(modifier) && !Flags.isFinal(modifier)) //Si l'attribut est publique, mais pas une constante
         	{
         		nbrPublic++;
-        		//System.out.println("Attribut Publique :" + t.getName());
+        		System.out.println("Attribut Publique :" + t.getName());
         	}
         } 
         if (varBinding.length != 0)

@@ -1,0 +1,34 @@
+TP1-IFT3913 HIVER 2014
+Travail réalisé par 
+--Tristan Savaria  1062837 (savt09129202)
+--IBrahima Faye 959315 (fayi29129204)
+Dans ce Tp on avait pour but d'extraire un ensemble de mesures de code Java à partir d'un Workspace.
+Pour cela des squelettes de programmes nous ont été fournis et on se devait d'y ajouter du code.
+Pour notre part nous avions aussi implémenté une nouvelle classe nommée Metrique sur laquelle on peut
+obtenir toutes nos mesures en un seul string sous la forme exigée pour ce Tp. En outre on a effectué 
+plusieurs affichages sur la console. La quasi-totalité des mesures réussies y ont été affichées.
+Cependant nous n'avions pas pu obtenir toutes les métriques demandées dans la feuille d'instruction.
+Les métriques implémentées dans notre programme sont :
+
+NbreInterfaces : Nombre Interfaces de la classes (toutes, transitivement héritées)
+NbreAttrImpl : Nombre d'attributs implantés dans la classe
+PctAttrPub : Pourcentage des attributs qui sont publiques
+PctAttrHer : Pourcentage des attributs hérités
+NbreMethImpl : Nombre de méthodes implantées
+PctMethPub : Pourcentage des méthodes qui sont publiques
+PctMethHer : Pourcentage des méthodes qui sont héritées
+DIT : Profondeur dans l'arbre d'héritage (voir les notes)
+NOC : Nombre de fils
+WMC : Somme des complexités des méthodes. Complexité est la complexité cyclomatique.
+fanOut : Nombre de classes sont utilisées par la classe
+
+Nous avions aussi vu qu'il a été nécessaire pour certaines métriques de finir la visite de tout le projet 
+(tout ce qui est dans le workspace) avant de pouvoir obtenir le bon résultat . Ceci est le cas de CBO et
+NOC par exemple. Pour le premier nommé on n'a pas pu aller jusqu'au bout de notre logique malgré 
+l'utilisation de HashMap pour la conservation des données. Quant au deuxième on est parvenu à un résultat
+fiable en effectuant un peu plus de travail sur la classe Metrique lorsque les informations sont mises à jour.
+Pour ce Tp les difficultés majeures rencontrées demeurent dans l'installation du matériel adéquat, 
+étape sur laquelle nous avions perdu beaucoup de temps. Quant à l'implémentation ce sont les 5 dernières
+ méthodes qui ont été très complexes et qui ont nécessité beaucoup de temps de travail.
+
+
