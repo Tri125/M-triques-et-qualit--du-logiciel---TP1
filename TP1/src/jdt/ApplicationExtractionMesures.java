@@ -73,6 +73,7 @@ public class ApplicationExtractionMesures implements IApplication {
 			}
 			root.close();
 		}
+		GenerateurMesures.Resultat();
 	}
 
 	@Override
