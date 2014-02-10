@@ -1,7 +1,12 @@
 package jdt;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.jdt.core.Flags;
@@ -15,8 +20,11 @@ import org.eclipse.jdt.core.dom.IVariableBinding;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclaration;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 /**
@@ -30,13 +38,23 @@ import org.eclipse.jdt.core.dom.WhileStatement;
 final class GenerateurMesures extends ASTVisitor {
 	
 	private int wmc_ComplexiteCyclomatic;
+	private Map <String, Metrique> classMetric = new HashMap<String, Metrique>(); //Les resultats
 	
+	private Map <String, Integer> coupling = new HashMap<String, Integer>();
+	
+	public void Resultat()
+	{
+		for (Entry<String, Metrique> val : classMetric.entrySet()) {
+		    System.out.println(val.getKey() +"\t" + val.getValue().toString());
+		}
+	}
 	
 	@Override
 	public void endVisit(MethodInvocation node) {
 		IMethodBinding methodBinding = node.resolveMethodBinding();
 		// Si l'implantation d'une mÃ©thode est connue, il y aura un method
 		// binding
+		
 		if (methodBinding != null) {
 			ITypeBinding declaringClass = methodBinding.getDeclaringClass();
 			ITypeBinding[] parameterTypes = methodBinding.getParameterTypes();
@@ -74,9 +92,29 @@ final class GenerateurMesures extends ASTVisitor {
 			PublicAttrPourcent(typeBind.getDeclaredFields());
 			InheritedAttrPourcent(typeBind.getDeclaredFields().length, 0, 0, typeBind, cmpU.getAST());
 			DIT(typeBind,cmpU.getAST(),0);
+			
+	        for (IVariableBinding t : typeBind.getDeclaredFields() )
+	        {
+	        	if (!t.getType().isPrimitive())
+	        	{
+	        		if (!coupling.containsKey(t.getType().getName()))
+	        		{
+	        			coupling.put(t.getType().getName(), 1);
+	        		}
+	        	}
+	        } 
+			
+			
 		}
 		return super.visit(type);
 	}
+	
+	
+	public void CBO()
+	{
+		
+	}
+	
 	
 	
 	public void InheritedAttrPourcent(final int nbrAttrSource, int nbrAttrInherit, int profondeur, ITypeBinding typeBind, AST ast)
@@ -222,6 +260,7 @@ final class GenerateurMesures extends ASTVisitor {
 				+ node.getName().getFullyQualifiedName());
 		
 		wmc_ComplexiteCyclomatic = 1;
+		
 		return super.visit(node);
 	}
 	
@@ -229,6 +268,31 @@ final class GenerateurMesures extends ASTVisitor {
 	public void endVisit(MethodDeclaration node) {
 		System.out.println("WMC Complexité Cyclomatique de la methode " + node.getName().getFullyQualifiedName() + "\t: "
 		+ wmc_ComplexiteCyclomatic);
+		
+		List<String> parameters = new ArrayList<String>();
+        for (Object parameter : node.parameters()) {
+            VariableDeclaration variableDeclaration = (VariableDeclaration) parameter;
+            String type = variableDeclaration.getStructuralProperty(SingleVariableDeclaration.TYPE_PROPERTY)
+                    .toString();
+            for (int i = 0; i < variableDeclaration.getExtraDimensions(); i++) {
+                type += "[]";
+            }
+            parameters.add(type);
+        }
+        for (String val : parameters)
+        {
+        
+        	if (val != "char" && val != "String" && val != "int")
+        	{
+        		if (!coupling.containsKey(val))
+        		{
+        			coupling.put(val, 1);
+        			//System.out.println(val);
+        		}
+        	}
+        	
+        }
+
 	}
 	
 	
@@ -252,6 +316,19 @@ final class GenerateurMesures extends ASTVisitor {
 		wmc_ComplexiteCyclomatic++;
 		return true;
 	}
+	
+	public boolean visit (VariableDeclarationStatement node) {
+    	if (!node.getType().isPrimitiveType())
+    	{
+    		if (!coupling.containsKey(node.getType().toString()))
+    		{
+    			coupling.put(node.getType().toString(), 1);
+    			//System.out.println(node.getType().toString());
+    		}
+    	}
+		return true;
+	}
+	
 
 	@Override
 	public boolean visit(CompilationUnit node) {
@@ -260,6 +337,15 @@ final class GenerateurMesures extends ASTVisitor {
 
 	@Override
 	public void endVisit(CompilationUnit node) {
+		for (Entry<String, Integer> val : coupling.entrySet()) {
+		    System.out.println(val.getKey() +"\t" + val.getValue());
+		}
+	    System.out.println("FanOut: " + coupling.size());
+	    
+	    
 		super.endVisit(node);
 	}
+	
+	
+
 }
